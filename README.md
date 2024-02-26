@@ -12,7 +12,7 @@ to convert text data into a numerical representation:
 - **Bag-of-Words** via TF-IDF
 - **Word Embeddings** via Transformers
 
-Based on the numerical text representations, text similarity is computed based on the cosine distance among the text vectors.
+Based on the numerical text representations, text similarity is computed via the cosine distance among the text vectors.
 Given the similarity matrix, pairs of most similar grants can be retrieved. The end-to-end pipeline can be summarized in the
 following steps:
 
