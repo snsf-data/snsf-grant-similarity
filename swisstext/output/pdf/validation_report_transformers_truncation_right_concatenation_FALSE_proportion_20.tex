@@ -1,0 +1,509 @@
+% Options for packages loaded elsewhere
+\PassOptionsToPackage{unicode}{hyperref}
+\PassOptionsToPackage{hyphens}{url}
+\PassOptionsToPackage{dvipsnames,svgnames,x11names}{xcolor}
+%
+\documentclass[
+]{article}
+\usepackage{amsmath,amssymb}
+\usepackage{lmodern}
+\usepackage{iftex}
+\ifPDFTeX
+  \usepackage[T1]{fontenc}
+  \usepackage[utf8]{inputenc}
+  \usepackage{textcomp} % provide euro and other symbols
+\else % if luatex or xetex
+  \usepackage{unicode-math}
+  \defaultfontfeatures{Scale=MatchLowercase}
+  \defaultfontfeatures[\rmfamily]{Ligatures=TeX,Scale=1}
+\fi
+% Use upquote if available, for straight quotes in verbatim environments
+\IfFileExists{upquote.sty}{\usepackage{upquote}}{}
+\IfFileExists{microtype.sty}{% use microtype if available
+  \usepackage[]{microtype}
+  \UseMicrotypeSet[protrusion]{basicmath} % disable protrusion for tt fonts
+}{}
+\makeatletter
+\@ifundefined{KOMAClassName}{% if non-KOMA class
+  \IfFileExists{parskip.sty}{%
+    \usepackage{parskip}
+  }{% else
+    \setlength{\parindent}{0pt}
+    \setlength{\parskip}{6pt plus 2pt minus 1pt}}
+}{% if KOMA class
+  \KOMAoptions{parskip=half}}
+\makeatother
+\usepackage{xcolor}
+\usepackage[margin=1in]{geometry}
+\usepackage{graphicx}
+\makeatletter
+\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
+\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
+\makeatother
+% Scale images if necessary, so that they will not overflow the page
+% margins by default, and it is still possible to overwrite the defaults
+% using explicit options in \includegraphics[width, height, ...]{}
+\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
+% Set default figure placement to htbp
+\makeatletter
+\def\fps@figure{htbp}
+\makeatother
+\setlength{\emergencystretch}{3em} % prevent overfull lines
+\providecommand{\tightlist}{%
+  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
+\setcounter{secnumdepth}{-\maxdimen} % remove section numbering
+\usepackage{dcolumn}
+\usepackage{booktabs}
+\ifLuaTeX
+  \usepackage{selnolig}  % disable illegal ligatures
+\fi
+\IfFileExists{bookmark.sty}{\usepackage{bookmark}}{\usepackage{hyperref}}
+\IfFileExists{xurl.sty}{\usepackage{xurl}}{} % add URL line breaks if available
+\urlstyle{same} % disable monospaced font for URLs
+\hypersetup{
+  pdftitle={Validation of Text Similarity Methods},
+  pdfauthor={Gabriel Okasa \& Anne Jorstad},
+  colorlinks=true,
+  linkcolor={Maroon},
+  filecolor={Maroon},
+  citecolor={Blue},
+  urlcolor={Blue},
+  pdfcreator={LaTeX via pandoc}}
+
+\title{Validation of Text Similarity Methods}
+\usepackage{etoolbox}
+\makeatletter
+\providecommand{\subtitle}[1]{% add subtitle to \maketitle
+  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
+}
+\makeatother
+\subtitle{Matching of Grant Proposals to Reviewers: PostDoc Mobility
+2021}
+\author{Gabriel Okasa \& Anne Jorstad}
+\date{}
+
+\begin{document}
+\maketitle
+
+\hypertarget{validation-summary}{%
+\section{Validation Summary}\label{validation-summary}}
+
+We validate several transformer models with various hyperparameter
+settings and data inputs for the task of semantic textual similarity.
+
+We do not impose any restrictions for the similarity search and restrict
+the applications and referees' texts to English texts only. We keep only
+referees that have at least English 10 publications.
+
+Given that the context window for transformers is limited to 512 tokens,
+we truncate the texts exceeding this length from the end of the text
+sequence.
+
+For matching the referees, we take into account the similarity average
+of 20 percent most similar publication of a given referee.
+
+The research area distribution for the validated applications is as
+follows:
+
+\begin{itemize}
+\tightlist
+\item
+  LS: 123 (0.38)
+\item
+  MINT: 147 (0.46)
+\item
+  SSH: 50 (0.16)
+\end{itemize}
+
+We validate the following models:
+
+\begin{itemize}
+\tightlist
+\item
+  allenai/scibert\_scivocab\_uncased; allenai/specter2\_base;
+  bert-base-uncased
+\end{itemize}
+
+and extract the text embeddings using:
+
+\begin{itemize}
+\tightlist
+\item
+  cls\_token; mean\_pooling
+\end{itemize}
+
+for the following type of texts:
+
+\begin{itemize}
+\tightlist
+\item
+  abstract; title; title\_abstract
+\end{itemize}
+
+based on the following years of publications:
+
+\begin{itemize}
+\tightlist
+\item
+  5; 10
+\end{itemize}
+
+For each validation scenario, we extract the text embeddings and compute
+the similarity between the applications and each publication of a
+referee based on the cosine similarity.
+
+We measure the performance of the methods based on the mean average
+precision at \(K=2\) and \(K=5\).
+
+\newpage
+
+\hypertarget{validation-results}{%
+\section{Validation Results}\label{validation-results}}
+
+\begin{table}[!h]
+
+\caption{\label{tab:results_overlap}Validation results: Mean Average Precision\label{tab:overlap_all}}
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tabular}[t]{llr>{}l|rr}
+\toprule
+\textbf{model} & \textbf{embedding} & \textbf{years} & \textbf{text} & \textbf{map\_at\_2} & \textbf{map\_at\_5}\\
+\midrule
+specter2\_base & mean\_pooling & 10 & abstract & 0.3703 & 0.4687\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 10 & title\_abstract & 0.3680 & 0.4619\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 10 & abstract & 0.3648 & 0.4605\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 10 & title\_abstract & 0.3656 & 0.4576\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 5 & abstract & 0.3578 & 0.4554\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 5 & title\_abstract & 0.3602 & 0.4536\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 5 & title\_abstract & 0.3586 & 0.4520\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 5 & abstract & 0.3562 & 0.4518\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 10 & abstract & 0.3117 & 0.4205\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 10 & title\_abstract & 0.3125 & 0.4184\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 10 & title & 0.3078 & 0.4034\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 5 & abstract & 0.2938 & 0.3949\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 5 & title & 0.2938 & 0.3908\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 5 & title\_abstract & 0.2867 & 0.3905\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 10 & title & 0.2914 & 0.3842\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 5 & title & 0.2945 & 0.3745\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 10 & title\_abstract & 0.2758 & 0.3696\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 5 & abstract & 0.2734 & 0.3684\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 10 & abstract & 0.2734 & 0.3675\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 5 & title\_abstract & 0.2719 & 0.3653\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 10 & title & 0.2531 & 0.3316\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 10 & title & 0.2508 & 0.3298\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 10 & title & 0.2383 & 0.3175\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 5 & title & 0.2398 & 0.3167\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 5 & title & 0.2383 & 0.3117\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 5 & title & 0.2266 & 0.3104\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 10 & title\_abstract & 0.2070 & 0.2917\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 5 & title\_abstract & 0.1938 & 0.2719\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 10 & abstract & 0.1969 & 0.2718\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 5 & abstract & 0.1727 & 0.2456\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 10 & abstract & 0.1500 & 0.2123\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 5 & abstract & 0.1461 & 0.2001\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 10 & title & 0.1469 & 0.2000\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 5 & title\_abstract & 0.1414 & 0.1941\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 5 & title & 0.1391 & 0.1937\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 10 & title\_abstract & 0.1328 & 0.1908\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\newpage
+
+\hypertarget{validation-results-by-research-area}{%
+\section{Validation Results by Research
+Area}\label{validation-results-by-research-area}}
+
+\begin{table}[!h]
+
+\caption{\label{tab:results_overlap_area}Validation results: Mean Average Precision by Research Area: LS\label{tab:overlap_area}}
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tabular}[t]{llr>{}l|rr}
+\toprule
+\textbf{model} & \textbf{embedding} & \textbf{years} & \textbf{text} & \textbf{map\_at\_2} & \textbf{map\_at\_5}\\
+\midrule
+specter2\_base & mean\_pooling & 5 & abstract & 0.3638 & 0.4634\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 5 & title\_abstract & 0.3598 & 0.4584\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 10 & abstract & 0.3638 & 0.4583\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 10 & title\_abstract & 0.3516 & 0.4460\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 10 & abstract & 0.3415 & 0.4430\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 5 & title\_abstract & 0.3455 & 0.4364\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 10 & title\_abstract & 0.3455 & 0.4363\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 5 & abstract & 0.3435 & 0.4353\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 10 & abstract & 0.3313 & 0.4239\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 10 & title & 0.3150 & 0.4091\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 10 & title\_abstract & 0.3191 & 0.4054\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 10 & title & 0.2927 & 0.3884\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 5 & abstract & 0.2967 & 0.3874\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 5 & title & 0.2785 & 0.3840\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 5 & title\_abstract & 0.2846 & 0.3780\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 5 & title & 0.2927 & 0.3758\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 5 & abstract & 0.2663 & 0.3530\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 10 & title\_abstract & 0.2642 & 0.3500\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 5 & title\_abstract & 0.2561 & 0.3493\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 10 & abstract & 0.2622 & 0.3411\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 10 & title & 0.2195 & 0.2920\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 10 & title & 0.2195 & 0.2870\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 10 & title\_abstract & 0.1931 & 0.2761\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 5 & title\_abstract & 0.1911 & 0.2744\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 5 & title & 0.2134 & 0.2711\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 5 & title & 0.1850 & 0.2673\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 5 & title & 0.1951 & 0.2556\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 10 & abstract & 0.1829 & 0.2514\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 10 & title & 0.1768 & 0.2502\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 5 & abstract & 0.1585 & 0.2370\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 10 & abstract & 0.1484 & 0.1970\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 5 & abstract & 0.1341 & 0.1884\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 10 & title\_abstract & 0.1220 & 0.1775\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 5 & title\_abstract & 0.1179 & 0.1694\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 10 & title & 0.1179 & 0.1446\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 5 & title & 0.0915 & 0.1315\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\newpage
+
+\begin{table}[!h]
+
+\caption{\label{tab:results_overlap_area}Validation results: Mean Average Precision by Research Area: MINT\label{tab:overlap_area}}
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tabular}[t]{llr>{}l|rr}
+\toprule
+\textbf{model} & \textbf{embedding} & \textbf{years} & \textbf{text} & \textbf{map\_at\_2} & \textbf{map\_at\_5}\\
+\midrule
+specter2\_base & cls\_token & 5 & title\_abstract & 0.4116 & 0.5153\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 5 & abstract & 0.4048 & 0.5140\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 10 & title\_abstract & 0.4082 & 0.5123\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 10 & abstract & 0.4031 & 0.5033\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 10 & title\_abstract & 0.4031 & 0.4994\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 10 & abstract & 0.3980 & 0.4985\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 5 & title\_abstract & 0.3827 & 0.4852\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 5 & abstract & 0.3861 & 0.4827\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 10 & title\_abstract & 0.3333 & 0.4563\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 10 & abstract & 0.3384 & 0.4536\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 10 & title & 0.3418 & 0.4459\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 5 & title & 0.3418 & 0.4444\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 5 & abstract & 0.3282 & 0.4327\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 5 & title\_abstract & 0.3197 & 0.4324\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 10 & title & 0.3265 & 0.4213\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 5 & title & 0.3282 & 0.4154\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 10 & abstract & 0.3061 & 0.4154\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 10 & title\_abstract & 0.3061 & 0.4126\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 10 & title & 0.3163 & 0.4093\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 5 & abstract & 0.2942 & 0.4018\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 5 & title\_abstract & 0.3010 & 0.4018\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 10 & title & 0.3129 & 0.3988\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 10 & title & 0.3027 & 0.3976\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 5 & title & 0.2823 & 0.3852\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 5 & title & 0.2908 & 0.3830\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 5 & title & 0.2789 & 0.3768\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 10 & title\_abstract & 0.2262 & 0.3251\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 10 & abstract & 0.2126 & 0.3051\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 5 & title\_abstract & 0.2245 & 0.3048\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 5 & abstract & 0.2041 & 0.2813\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 5 & title & 0.1786 & 0.2478\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 10 & title & 0.1735 & 0.2430\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 10 & abstract & 0.1497 & 0.2273\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 5 & title\_abstract & 0.1650 & 0.2217\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 10 & title\_abstract & 0.1446 & 0.2106\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 5 & abstract & 0.1497 & 0.2094\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\newpage
+
+\begin{table}[!h]
+
+\caption{\label{tab:results_overlap_area}Validation results: Mean Average Precision by Research Area: SSH\label{tab:overlap_area}}
+\centering
+\resizebox{\linewidth}{!}{
+\begin{tabular}[t]{llr>{}l|rr}
+\toprule
+\textbf{model} & \textbf{embedding} & \textbf{years} & \textbf{text} & \textbf{map\_at\_2} & \textbf{map\_at\_5}\\
+\midrule
+specter2\_base & mean\_pooling & 10 & abstract & 0.305 & 0.4070\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 10 & title\_abstract & 0.305 & 0.3908\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 10 & abstract & 0.310 & 0.3775\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 10 & title\_abstract & 0.290 & 0.3493\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 5 & title\_abstract & 0.295 & 0.3492\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 10 & title\_abstract & 0.235 & 0.3388\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 5 & abstract & 0.250 & 0.3327\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 5 & abstract & 0.255 & 0.3325\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 10 & abstract & 0.185 & 0.3150\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 5 & abstract & 0.230 & 0.3080\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 5 & title\_abstract & 0.235 & 0.3038\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 5 & abstract & 0.185 & 0.3020\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 5 & title\_abstract & 0.195 & 0.2983\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 5 & title\_abstract & 0.225 & 0.2973\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 10 & abstract & 0.205 & 0.2915\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 10 & title\_abstract & 0.215 & 0.2913\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 10 & title & 0.185 & 0.2647\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 10 & title & 0.190 & 0.2643\\
+\addlinespace[0.25ex]
+specter2\_base & mean\_pooling & 5 & title & 0.200 & 0.2513\\
+\addlinespace[0.25ex]
+specter2\_base & cls\_token & 5 & title & 0.190 & 0.2502\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 10 & title & 0.170 & 0.2440\\
+\addlinespace[0.25ex]
+bert-base-uncased & mean\_pooling & 5 & title & 0.190 & 0.2402\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 10 & title\_abstract & 0.185 & 0.2318\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 5 & title & 0.180 & 0.2273\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 10 & abstract & 0.185 & 0.2240\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 10 & title & 0.175 & 0.2237\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 5 & title & 0.175 & 0.2213\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & mean\_pooling & 10 & title & 0.150 & 0.2128\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 10 & title & 0.140 & 0.2098\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 10 & abstract & 0.155 & 0.2060\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 5 & abstract & 0.165 & 0.2017\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 5 & title & 0.140 & 0.1873\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 5 & title\_abstract & 0.130 & 0.1735\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 5 & title\_abstract & 0.110 & 0.1690\\
+\addlinespace[0.25ex]
+scibert\_scivocab\_uncased & cls\_token & 10 & title\_abstract & 0.125 & 0.1657\\
+\addlinespace[0.25ex]
+bert-base-uncased & cls\_token & 5 & abstract & 0.115 & 0.1617\\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+\end{document}

@@ -1,0 +1,245 @@
+---
+title: "Validation of Text Similarity Methods"
+subtitle: "Matching of Grant Proposals to Reviewers: PostDoc Mobility 2021"
+author: "Gabriel Okasa & Anne Jorstad"
+output:
+  pdf_document:
+    keep_tex: yes
+header-includes:
+   - \usepackage{dcolumn}
+   - \usepackage{booktabs}
+urlcolor: #6684c1
+knit: (function(inputFile, encoding) {
+  rmarkdown::render(inputFile, encoding = encoding, output_dir = "output/pdf") })
+---
+
+```{r header, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE, fig.showtext = TRUE)
+# kableExtra for kable-tables
+library(kableExtra)
+# Use here("...") with paths relative to the project root
+# to address files
+library(here)
+# Avoid dependency on load order of packages
+library(conflicted)
+# import files
+library(rio)
+
+# conflict_prefers 
+# if you'd like to see futher updates, tell rhe.
+conflict_prefer("filter", "dplyr")
+conflict_prefer("select", "dplyr")
+conflict_prefer("here", "here")
+
+# Not show the summarise messages
+options(dplyr.summarise.inform = FALSE)
+```
+
+```{r data, include=FALSE}
+# load the settings
+settings <- rio::import(here("data", "input", "all_settings.xlsx"))
+# as well as general settings
+general_settings <- rio::import(
+  here("data", "input", "general_settings.xlsx")) %>%
+  # replace NAs (in case of empty string in truncation)
+  mutate(truncation = ifelse(is.na(truncation), "", truncation))
+
+# get clean validation data
+validation_data <- rio::import(here("data", "output",
+                                    "validation_data_clean.xlsx"))
+
+# and an example top match file to get research area shares
+top_refs_for_display <- rio::import(
+  here("data", "output", dataset,
+       paste0("top_referees_", method_selection, "_truncation_",
+              general_settings$truncation,
+              "_concatenation_", general_settings$concatenation, "_",
+              stri_replace_all_regex(str_replace_all(
+                settings$model[3], "-", "_"),
+                c("google/", "allenai/", "sentence_transformers/"), "",
+                vectorize = FALSE), "_", settings$embedding[3], "_",
+              settings$years[3], "_", settings$text[3], ".xlsx")))
+
+# get research areas
+research_areas <- left_join(validation_data, top_refs_for_display,
+                            by = "ApplicationId") %>%
+  # and remove non-english proposals (resulting join is NA)
+  filter(!is.na(`Ref 1`)) %>%
+  # and also those that have both referees without english publications
+  filter(!(is.na(`Best Ref`) & is.na(`Best Co-Ref`))) %>%
+  # select research area
+  select(research_area) %>%
+  pull()
+
+# load the results
+results_validation <- rio::import(
+  here("data", "output",
+       paste0("validation_results_map_", general_settings$method[1],
+              "_trunc_", general_settings$truncation[1],
+              "_concatenation_", general_settings$concatenation[1],
+              "_proportion_",
+              as.character(round(100*general_settings$proportion[1])), ".xlsx")))
+# and per research area
+results_validation_area <- rio::import(
+  here("data", "output",
+       paste0("validation_results_map_area_", general_settings$method[1],
+              "_trunc_", general_settings$truncation[1],
+              "_concatenation_", general_settings$concatenation[1],
+              "_proportion_",
+              as.character(round(100*general_settings$proportion[1])), ".xlsx")))
+```
+
+# Validation Summary
+
+We validate several `r ifelse(settings$model[1] == "tfidf", "TF-IDF", "transformer")`
+models with various hyperparameter settings and data inputs for the task of semantic textual similarity.
+`r ifelse(general_settings$method == "transformer-tfidf", "We combine the transformer models with TF-IDF by averaging the similarity scores.", "")`
+
+We do not impose any restrictions for the similarity search and restrict the
+applications and referees' texts to English texts only. We keep only referees
+that have at least English 10 publications.
+
+`r ifelse(settings$model[1] == "tfidf", "", paste0("Given that the context window for transformers is limited to 512 tokens, we truncate the texts exceeding this length from the ", ifelse(general_settings$truncation == "right", "end", "beginning"), " of the text sequence."))`
+
+`r ifelse(general_settings$concatenation, paste0("For each referee we concatenate all the texts of the publication."), paste0("For matching the referees, we take into account the similarity average of ", round(general_settings$proportion * 100), " percent most similar publication of a given referee."))`
+
+The research area distribution for the validated applications is as follows:
+
+- LS: `r sum(research_areas == "LS")` (`r round(mean(research_areas == "LS"), 2)`)
+- MINT: `r sum(research_areas == "MINT")` (`r round(mean(research_areas == "MINT"), 2)`)
+- SSH: `r sum(research_areas == "SSH")` (`r round(mean(research_areas == "SSH"), 2)`)
+
+We validate the following models:
+
+- `r settings$model %>% unique() %>% sort() %>% paste(collapse = "; ")`
+
+and extract the text embeddings using:
+
+- `r settings$embedding %>% unique() %>% sort() %>% paste(collapse = "; ")`
+
+for the following type of texts:
+
+- `r settings$text %>% unique() %>% sort() %>% paste(collapse = "; ")`
+
+based on the following years of publications:
+
+- `r settings$years %>% unique() %>% sort() %>% paste(collapse = "; ")`
+
+For each validation scenario, we extract the text embeddings and compute the
+similarity between the applications and each publication of a referee based on
+the cosine similarity.
+
+We measure the performance of the methods based on the mean average precision
+at $K=2$ and $K=5$.
+
+\newpage
+
+# Validation Results
+
+```{r results_overlap, include=FALSE}
+# prepare the standard reporting table
+validation_table <- kable(results_validation %>%
+                          # remove clutte rin model names
+                          mutate(model = stri_replace_all_regex(model,
+                                                 c("google/", "allenai/",
+                                                   "sentence-transformers/"),
+                                                 "", vectorize = FALSE)) %>%
+                          # sort values based on the best top 5 MAP
+                          arrange(desc(`map_at_5`)),
+                          # how many digits for decimals
+                          digits = 4,
+                          # booktabs for nicer formatting
+                          booktabs = TRUE,
+                          # no rownames from the dataframe
+                          row.names = FALSE,
+                          # booktabs automatically separates each 5 rows, to get
+                          # rid of this, specify own line separation
+                          linesep = "\\addlinespace[0.25ex]",
+                          # get the table in latex code
+                          format = "latex",
+                          # add table caption
+                          caption = paste0(
+                            "Validation results: Mean Average Precision",
+                            #and add table label for referencing
+                            "\\label{tab:overlap_all}")) %>%
+  # add bold column headers
+  row_spec(0, bold = TRUE) %>%
+  # add vertical separation after 4th column
+  column_spec(4, border_right = TRUE) %>%
+  # scale down to fit the page
+  kable_styling(latex_options = c("scale_down", "hold_position"))
+```
+
+```{r render-results_overlap, results='asis'}
+# print the latex formatted table
+knitr::asis_output(validation_table)
+```
+
+\newpage
+
+# Validation Results by Research Area
+
+```{r results_overlap_area, include=FALSE}
+# prepare the standard reporting table for each research area separately
+validation_area_table <- lapply(sort(unique(results_validation_area$area)),
+                                function(area_idx) {
+                        
+  # define kable table
+  kable(results_validation_area %>%
+        # filte ronly one research area
+        filter(area == area_idx) %>%
+        # deselect area indicator
+        select(-area) %>%
+        # remove clutter in model names
+        mutate(model = stri_replace_all_regex(model,
+                               c("google/", "allenai/",
+                                 "sentence-transformers/"),
+                               "", vectorize = FALSE)) %>%
+        # arrange based on top 5: binary
+        arrange(desc(`map_at_5`)),
+  # how many digits for decimals
+  digits = 4,
+  # booktabs for nicer formatting
+  booktabs = TRUE,
+  # no rownames from the dataframe
+  row.names = FALSE,
+  # booktabs automatically separates each 5 rows, to get
+  # rid of this, specify own line separation
+  linesep = "\\addlinespace[0.25ex]",
+  # get the table in latex code
+  format = "latex",
+  # add table caption
+  caption = paste0(
+    "Validation results: Mean Average Precision by Research Area: ", area_idx,
+                  # and add table label for referencing
+                  "\\label{tab:overlap_area}")) %>%
+  # add bold column headers
+  row_spec(0, bold = TRUE) %>%
+  # add vertical separation after 4th column
+  column_spec(4, border_right = TRUE) %>%
+  # scale down to fit the page
+  kable_styling(latex_options = c("scale_down", "hold_position"))
+                                  
+})
+# add table names base don area
+names(validation_area_table) <- sort(unique(results_validation_area$area))
+```
+
+```{r render-results_overlap_area_ls, results='asis'}
+# print the latex formatted table
+knitr::asis_output(validation_area_table[["LS"]])
+```
+
+\newpage
+
+```{r render-results_overlap_area_mint, results='asis'}
+# print the latex formatted table
+knitr::asis_output(validation_area_table[["MINT"]])
+```
+
+\newpage
+
+```{r render-results_overlap_area_ssh, results='asis'}
+# print the latex formatted table
+knitr::asis_output(validation_area_table[["SSH"]])
+```
