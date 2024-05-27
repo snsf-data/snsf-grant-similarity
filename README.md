@@ -1,45 +1,34 @@
 # SNSF Grant Similarity
 
-This repository contains notebooks for implementation of text similarity methods for SNSF grants.
+This repository contains implementation of text similarity methods for SNSF grants. It consists of two parts:
+
+- `/swisstext`: codes for matching grant proposals to reviewers based on text similarity
+- `/notebooks`: tutorials for text similarity methods to retrieve similar grants
 
 ## Overview
 
-The notebooks provide a demonstration of applying natural language processing tools in `Python` to retrieve similar grants
-based on the textual data provided in grant titles and abstracts, which is publicly available through the
-SNSF Data Portal: [data.snf.ch](https://data.snf.ch/). The notebooks showcase two particular text vectorization approaches
-to convert text data into a numerical representation:
+The SNSF supports scientific research by evaluating grant proposals and deciding which of them are eligible for funding. As a part of the evaluation procedure, submitted grant proposals need to be assigned to suitable reviewers who assess the scientific quality of the proposals. We define this task as a text similarity problem to leverage the benefits of natural language processing to pre-filter a subset of suitable reviewers from a pre-defined pool of expert reviewers. In particular, we vectorize the texts of proposals and those of reviewers' publications and compute their similarity. For each proposal we then rank-order the similarity scores of all potential reviewers to retrieve the subset of best-matching reviewers. This subset then serves the scientific officers as a pre-filtered set of suitable reviewers. The SNSF is testing these algorithms to help with the assignment of grant proposals to evaluation panel members from a pre-defined pool of expert reviewers.
 
-- **Bag-of-Words** via TF-IDF
-- **Word Embeddings** via Transformers
+## SwissText
 
-Based on the numerical text representations, text similarity is computed via the cosine distance among the text vectors.
-Given the similarity matrix, pairs of most similar grants can be retrieved. The end-to-end pipeline can be summarized in the
-following steps:
+As the choice of the text vectorization method for the text similarity is not *a priori* clear,
+we investigate the performance of BERT transformer models vs. classical bag-of-words approach using TF-IDF in the following research paper:
 
-1. Download of publicly available text data from the SNSF data portal: [data.snf.ch](https://data.snf.ch/)
-2. Cleaning and pre-processing of the text data
-3. Application of text vectorization method to get numerical representations of the text
-4. Computation of the cosine similarity scores
-5. Retrieval of the most similar grants based on rank-ordering the similarity scores
+**The Value of Pre-training for Scientific Text Similarity: Evidence from Matching Grant Proposals to Reviewers**
 
-The notebooks including the code and a detailed description of the text analysis are located in the `notebooks` subdirectory.
+submitted to the 9th Swiss Text Analytics Conference [SwissText](https://www.swisstext.org/).
 
-## Replication
+The subfolder `/swisstext` contains the description and the codes for the conducted analyses.
 
-To clone the repository run:
+## Notebooks
 
-```
-git clone https://github.com/snsf-data/snsf-grant-similarity.git
-```
+In order to showcase the implementation of the text similarity methods, the notebooks provide tutorials for a word embeddings approach via pre-trained transformer model as well as for a bag-of-words approach via TF-IDF to retrieve similar grants based on the textual data provided in grant titles and abstracts, which is publicly available through the SNSF Data Portal: [data.snf.ch](https://data.snf.ch/).
 
-The required `Python` modules can be installed by navigating to the root of
-the cloned project and executing the following command: `pip install -r requirements.txt`.
-The implementation relies on `Python` version 3.9.12.
+The subfolder `/notebooks` contains the description and the codes for the implemented text vectorization methods.
 
 ## Contact
 
-If you have questions regarding the notebooks, please contact [gabriel.okasa@snf.ch](mailto:gabriel.okasa@snf.ch).
-For general inquiries about the SNSF Data Portal, please contact [datateam@snf.ch](mailto:datateam@snf.ch).
+If you have questions regarding the SwissText paper or the tutorial notebooks, please contact [gabriel.okasa@snf.ch](mailto:gabriel.okasa@snf.ch). For general inquiries about the SNSF Data Portal, please contact [datateam@snf.ch](mailto:datateam@snf.ch).
 
 ## License
 
