@@ -16,7 +16,7 @@ we investigate the performance of BERT transformer models vs. classical bag-of-w
 
 **The Value of Pre-training for Scientific Text Similarity: Evidence from Matching Grant Proposals to Reviewers**
 
-submitted to the 9th Swiss Text Analytics Conference [SwissText](https://www.swisstext.org/).
+submitted to the 9th Swiss Text Analytics Conference [SwissText](https://www.swisstext.org/). The [paper](https://www.swisstext.org/wp-content/uploads/2024/06/Proceedings_Preprint.pdf#99) is available as a preprint of the conference proceedings as well as a [poster](https://github.com/snsf-data/snsf-grant-similarity/tree/main/swisstext/output/snsf_swisstext_poster.pdf) presentation.
 
 The subfolder `/swisstext` contains the description and the codes for the conducted analyses.
 
